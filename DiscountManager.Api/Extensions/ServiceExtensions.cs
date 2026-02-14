@@ -75,5 +75,16 @@ public static class ServiceExtensions
         services.AddHealthChecks()
             .AddSqlServer(sqlConnectionString, name: "SQL Server")
             .AddRedis(redisConnectionString, name: "Redis Cache");
+
+        services.AddHealthChecksUI(setup =>
+        {
+            setup.AddHealthCheckEndpoint("Basic Health Check", "/health");
+            setup.SetEvaluationTimeInSeconds(30);
+        }).AddInMemoryStorage();
+    }
+
+    public static void AddSwaggerDocumentation(this IServiceCollection services)
+    {
+        services.AddSwaggerGen();
     }
 }

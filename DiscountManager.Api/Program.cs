@@ -14,11 +14,13 @@ builder.Services.AddDatabaseContext(connectionString);
 builder.Services.AddIdentityAndIdentityServer();
 builder.Services.AddAdvancedCaching(redisConnectionString);
 builder.Services.AddSystematicHealthChecks(connectionString, redisConnectionString);
+builder.Services.AddVectorMetrics();
+builder.Services.AddSwaggerDocumentation();
+builder.Services.AddHttpClient();
 
 builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
 
 var app = builder.Build();
 
@@ -26,7 +28,13 @@ var app = builder.Build();
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
-    app.UseSwaggerUI();
+    app.UseSwaggerUI(options =>
+    {
+        options.SwaggerEndpoint("/swagger/v1/swagger.json", "Discount Manager API v1");
+        options.RoutePrefix = "swagger";
+        options.DocumentTitle = "Discount Manager - API & Dashboards";
+        // Adding custom links or description if possible via the UI
+    });
 }
 
 app.UseHttpsRedirection();
@@ -35,9 +43,16 @@ app.UseIdentityServer();
 app.UseAuthentication();
 app.UseAuthorization();
 
+app.UseVectorMetrics();
+
 app.MapHealthChecks("/health", new Microsoft.AspNetCore.Diagnostics.HealthChecks.HealthCheckOptions
 {
     ResponseWriter = HealthChecks.UI.Client.UIResponseWriter.WriteHealthCheckUIResponse
+});
+
+app.MapHealthChecksUI(setup =>
+{
+    setup.UIPath = "/health-ui"; // UI panel for checking status
 });
 
 app.MapControllers();
