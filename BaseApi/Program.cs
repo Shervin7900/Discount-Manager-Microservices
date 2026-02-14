@@ -7,13 +7,15 @@ var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection") 
-    ?? "Server=(localdb)\\mssqllocaldb;Database=DiscountManager;Trusted_Connection=True;MultipleActiveResultSets=true";
+    ?? "Server=(localdb)\\mssqllocaldb;Database=BaseApi;Trusted_Connection=True;MultipleActiveResultSets=true";
 var redisConnectionString = builder.Configuration.GetConnectionString("Redis") ?? "localhost:6379";
+var mongoConnectionString = builder.Configuration.GetConnectionString("Mongo") ?? "mongodb://localhost:27017/BaseApi";
 
 builder.Services.AddDatabaseContext(connectionString);
+builder.Services.AddMongoPersistence(mongoConnectionString);
 builder.Services.AddIdentityAndIdentityServer();
 builder.Services.AddAdvancedCaching(redisConnectionString);
-builder.Services.AddSystematicHealthChecks(connectionString, redisConnectionString);
+builder.Services.AddSystematicHealthChecks(connectionString, redisConnectionString, mongoConnectionString);
 builder.Services.AddVectorMetrics();
 builder.Services.AddSwaggerDocumentation();
 builder.Services.AddHttpClient();

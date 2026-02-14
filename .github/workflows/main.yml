@@ -1,0 +1,81 @@
+name: BaseApi Multi-Env Pipeline
+
+on:
+  push:
+    branches: [main, develop]
+    tags:
+      - "v*"
+  pull_request:
+    branches: [main, develop]
+
+env:
+  DOTNET_VERSION: "10.0.x"
+  PROJECT_PATH: "BaseApi/BaseApi.csproj"
+  DOCKER_IMAGE: "base-api"
+
+jobs:
+  # CI Job: Runs on every PR and Push to build and test
+  ci:
+    name: Build and Test (CI)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+      - name: Cache NuGet
+        uses: actions/cache@v4
+        with:
+          path: ~/.nuget/packages
+          key: ${{ runner.os }}-nuget-${{ hashFiles('**/*.csproj*') }}
+      - name: Restore
+        run: dotnet restore ${{ env.PROJECT_PATH }}
+      - name: Security scan
+        run: dotnet list ${{ env.PROJECT_PATH }} package --vulnerable --include-transitive
+      - name: Build
+        run: dotnet build ${{ env.PROJECT_PATH }} -c Release --no-restore
+      - name: Test
+        run: dotnet test ${{ env.PROJECT_PATH }} -c Release --no-build
+
+  # Development Deploy: Triggered on pushes to the develop branch
+  deploy-dev:
+    name: Deploy to Development
+    needs: ci
+    if: github.ref == 'refs/heads/develop'
+    environment: development
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build Docker Dev
+        run: docker build -t ${{ env.DOCKER_IMAGE }}:dev BaseApi/
+      - name: Fake Deploy to Dev Cluster
+        run: echo "Deploying to Dev environment..."
+
+  # Staging Deploy: Triggered on pushes to the main branch
+  deploy-staging:
+    name: Deploy to Staging
+    needs: ci
+    if: github.ref == 'refs/heads/main'
+    environment: staging
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build Docker Stage
+        run: docker build -t ${{ env.DOCKER_IMAGE }}:stage BaseApi/
+      - name: Fake Deploy to Stage Cluster
+        run: echo "Deploying to Staging environment..."
+
+  # Production Deploy: Triggered on Git tags (e.g., v1.0.0)
+  deploy-production:
+    name: Deploy to Production
+    needs: ci
+    if: startsWith(github.ref, 'refs/tags/v')
+    environment: production
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build Docker Prod
+        run: docker build -t ${{ env.DOCKER_IMAGE }}:prod BaseApi/
+      - name: Fake Deploy to Production Cluster
+        run: echo "Deploying to Production environment..."

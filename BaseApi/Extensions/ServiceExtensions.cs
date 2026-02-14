@@ -6,6 +6,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Hybrid;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
+using MongoDB.Driver;
 
 namespace BaseApi.Extensions;
 
@@ -15,6 +16,12 @@ public static class ServiceExtensions
     {
         services.AddDbContext<ApplicationDbContext>(options =>
             options.UseSqlServer(connectionString));
+    }
+
+    public static void AddMongoPersistence(this IServiceCollection services, string connectionString)
+    {
+        var settings = MongoClientSettings.FromConnectionString(connectionString);
+        services.AddSingleton<IMongoClient>(new MongoClient(settings));
     }
 
     public static void AddIdentityAndIdentityServer(this IServiceCollection services)
@@ -52,7 +59,7 @@ public static class ServiceExtensions
         })
         .AddCookie(options =>
         {
-            options.Cookie.Name = "DiscountManager.Auth";
+            options.Cookie.Name = "BaseApi.Auth";
         });
     }
 
@@ -62,7 +69,7 @@ public static class ServiceExtensions
         services.AddStackExchangeRedisCache(options =>
         {
             options.Configuration = redisConnectionString;
-            options.InstanceName = "DiscountManager_";
+            options.InstanceName = "BaseApi_";
         });
 
 #pragma warning disable EXTEXP0018
@@ -70,11 +77,12 @@ public static class ServiceExtensions
 #pragma warning restore EXTEXP0018
     }
 
-    public static void AddSystematicHealthChecks(this IServiceCollection services, string sqlConnectionString, string redisConnectionString)
+    public static void AddSystematicHealthChecks(this IServiceCollection services, string sqlConnectionString, string redisConnectionString, string mongoConnectionString)
     {
         services.AddHealthChecks()
             .AddSqlServer(sqlConnectionString, name: "SQL Server")
-            .AddRedis(redisConnectionString, name: "Redis Cache");
+            .AddRedis(redisConnectionString, name: "Redis Cache")
+            .AddMongoDb(_ => new MongoClient(mongoConnectionString), name: "MongoDB");
 
         services.AddHealthChecksUI(setup =>
         {

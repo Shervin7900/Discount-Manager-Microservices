@@ -193,3 +193,12 @@ G:\Discount-Manager-Microservices\BaseApi\obj\Debug\net10.0\refint\BaseApi.dll
 G:\Discount-Manager-Microservices\BaseApi\obj\Debug\net10.0\BaseApi.pdb
 G:\Discount-Manager-Microservices\BaseApi\obj\Debug\net10.0\BaseApi.genruntimeconfig.cache
 G:\Discount-Manager-Microservices\BaseApi\obj\Debug\net10.0\ref\BaseApi.dll
+G:\Discount-Manager-Microservices\BaseApi\bin\Debug\net10.0\HealthChecks.MongoDb.dll
+G:\Discount-Manager-Microservices\BaseApi\bin\Debug\net10.0\DnsClient.dll
+G:\Discount-Manager-Microservices\BaseApi\bin\Debug\net10.0\MongoDB.Bson.dll
+G:\Discount-Manager-Microservices\BaseApi\bin\Debug\net10.0\MongoDB.Driver.dll
+G:\Discount-Manager-Microservices\BaseApi\bin\Debug\net10.0\SharpCompress.dll
+G:\Discount-Manager-Microservices\BaseApi\bin\Debug\net10.0\Snappier.dll
+G:\Discount-Manager-Microservices\BaseApi\bin\Debug\net10.0\ZstdSharp.dll
+G:\Discount-Manager-Microservices\BaseApi\bin\Debug\net10.0\appsettings.Production.json
+G:\Discount-Manager-Microservices\BaseApi\bin\Debug\net10.0\appsettings.Staging.json
