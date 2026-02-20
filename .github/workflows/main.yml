@@ -35,8 +35,40 @@ jobs:
         run: dotnet list ${{ env.PROJECT_PATH }} package --vulnerable --include-transitive
       - name: Build
         run: dotnet build ${{ env.PROJECT_PATH }} -c Release --no-restore
+
+      - name: Dependency Security Audit
+        run: |
+          # Fail if there are High or Critical vulnerabilities
+          VULNS=$(dotnet list ${{ env.PROJECT_PATH }} package --vulnerable --include-transitive --threshold high | grep -c "High\|Critical" || true)
+          if [ "$VULNS" -gt 0 ]; then
+            echo "Critical/High vulnerabilities detected: $VULNS"
+            dotnet list ${{ env.PROJECT_PATH }} package --vulnerable --include-transitive --threshold high
+            exit 1
+          fi
+
       - name: Test
         run: dotnet test ${{ env.PROJECT_PATH }} -c Release --no-build
+
+  # Security Scan: Containers and SAST
+  security:
+    name: Security Analysis
+    needs: ci
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build Docker for Scanning
+        run: docker build -t ${{ env.DOCKER_IMAGE }}:scan BaseApi/
+
+      - name: Run Trivy vulnerability scanner
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: "${{ env.DOCKER_IMAGE }}:scan"
+          format: "table"
+          exit-code: "1"
+          ignore-unfixed: true
+          vuln-type: "os,library"
+          severity: "CRITICAL,HIGH"
 
   # Development Deploy: Triggered on pushes to the develop branch
   deploy-dev:
