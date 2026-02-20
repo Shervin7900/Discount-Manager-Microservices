@@ -59,6 +59,8 @@ public class DashboardEndpoint : EndpointWithoutRequest
 </body>
 </html>";
 
-        await SendStringAsync(html, 200, "text/html", ct);
+        HttpContext.Response.StatusCode = 200;
+        HttpContext.Response.ContentType = "text/html; charset=utf-8";
+        await HttpContext.Response.WriteAsync(html, ct);
     }
 }
