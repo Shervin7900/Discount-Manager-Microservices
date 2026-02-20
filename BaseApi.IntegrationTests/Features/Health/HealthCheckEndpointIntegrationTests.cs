@@ -1,16 +1,13 @@
 using FluentAssertions;
 using System.Net;
-using Moq;
-using Moq.Protected;
 
+namespace BaseApi.IntegrationTests.Features.Health;
 
-namespace BaseApi.IntegrationTests.Controllers;
-
-public class HealthControllerIntegrationTests : IClassFixture<CustomWebApplicationFactory>
+public class HealthCheckEndpointIntegrationTests : IClassFixture<CustomWebApplicationFactory>
 {
     private readonly CustomWebApplicationFactory _factory;
 
-    public HealthControllerIntegrationTests(CustomWebApplicationFactory factory)
+    public HealthCheckEndpointIntegrationTests(CustomWebApplicationFactory factory)
     {
         _factory = factory;
     }
@@ -22,6 +19,8 @@ public class HealthControllerIntegrationTests : IClassFixture<CustomWebApplicati
         var client = _factory.CreateClient();
 
         // Act
+        // Both /health (legacy middleware) and /api/health (FastEndpoint) should work
+        // Testing the FastEndpoint specifically here as it was part of the refactor
         var response = await client.GetAsync("/api/health");
 
         // Assert

@@ -1,51 +1,58 @@
-using BaseApi.Controllers;
+using BaseApi.Features.Health;
+using FastEndpoints;
 using FluentAssertions;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Moq;
+using Microsoft.AspNetCore.Http;
 
-namespace BaseApi.UnitTests.Controllers;
+namespace BaseApi.UnitTests.Features.Health;
 
-public class HealthControllerTests
+public class HealthCheckEndpointTests
 {
     private readonly Mock<HealthCheckService> _healthCheckServiceMock;
-    private readonly HealthController _controller;
 
-    public HealthControllerTests()
+    public HealthCheckEndpointTests()
     {
         _healthCheckServiceMock = new Mock<HealthCheckService>();
-        _controller = new HealthController(_healthCheckServiceMock.Object);
     }
 
     [Fact]
-    public async Task Get_ReturnsOk_WhenHealthy()
+    public async Task HandleAsync_ReturnsHealthy_WhenServiceIsHealthy()
     {
         // Arrange
         var entries = new Dictionary<string, HealthReportEntry>();
         var report = new HealthReport(entries, HealthStatus.Healthy, TimeSpan.FromMilliseconds(100));
         _healthCheckServiceMock.Setup(s => s.CheckHealthAsync(It.IsAny<Func<HealthCheckRegistration, bool>>(), It.IsAny<CancellationToken>())).ReturnsAsync(report);
 
+        var endpoint = Factory.Create<HealthCheckEndpoint>(_healthCheckServiceMock.Object);
+
         // Act
-        var result = await _controller.Get() as OkObjectResult;
+        await endpoint.HandleAsync(new EmptyRequest(), default);
+        var response = endpoint.Response;
 
         // Assert
-        result.Should().NotBeNull();
-        result!.StatusCode.Should().Be(200);
+        response.Should().NotBeNull();
+        response.Status.Should().Be("Healthy");
+        endpoint.HttpContext.Response.StatusCode.Should().Be(200);
     }
 
     [Fact]
-    public async Task Get_Returns503_WhenUnhealthy()
+    public async Task HandleAsync_ReturnsUnhealthy_WhenServiceIsUnhealthy()
     {
         // Arrange
         var entries = new Dictionary<string, HealthReportEntry>();
         var report = new HealthReport(entries, HealthStatus.Unhealthy, TimeSpan.FromMilliseconds(100));
         _healthCheckServiceMock.Setup(s => s.CheckHealthAsync(It.IsAny<Func<HealthCheckRegistration, bool>>(), It.IsAny<CancellationToken>())).ReturnsAsync(report);
 
+        var endpoint = Factory.Create<HealthCheckEndpoint>(_healthCheckServiceMock.Object);
+
         // Act
-        var result = await _controller.Get() as ObjectResult;
+        await endpoint.HandleAsync(new EmptyRequest(), default);
+        var response = endpoint.Response;
 
         // Assert
-        result.Should().NotBeNull();
-        result!.StatusCode.Should().Be(503);
+        response.Should().NotBeNull();
+        response.Status.Should().Be("Unhealthy");
+        endpoint.HttpContext.Response.StatusCode.Should().Be(503);
     }
 }

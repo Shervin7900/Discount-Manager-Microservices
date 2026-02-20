@@ -75,7 +75,7 @@ public class SystemFlowTests : IAsyncLifetime
         if (_client == null) return;
 
         // Act
-        var response = await _client.GetAsync("/health");
+        var response = await _client.GetAsync("/api/health");
         var content = await response.Content.ReadAsStringAsync();
 
         // Assert
