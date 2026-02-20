@@ -53,11 +53,11 @@ public class HealthCheckEndpoint : EndpointWithoutRequest<HealthCheckResponse>
 
         if (report.Status == HealthStatus.Healthy)
         {
-            await SendAsync(result, 200, ct);
+            await this.HttpContext.Response.SendAsync(result, 200, null, ct);
         }
         else
         {
-            await SendAsync(result, 503, ct);
+            await this.HttpContext.Response.SendAsync(result, 503, null, ct);
         }
     }
 }
