@@ -1,0 +1,29 @@
+services:
+  baseapi:
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Production
+    # Only expose the main port in production
+    ports:
+      - "80:8080"
+    deploy:
+      resources:
+        limits:
+          cpus: '0.50'
+          memory: 512M
+        reservations:
+          cpus: '0.25'
+          memory: 256M
+
+  sqlserver:
+    # SQL Server often doesn't need to be exposed to the outside in production
+    ports: [] 
+    deploy:
+      resources:
+        limits:
+          memory: 2G
+
+  redis:
+    ports: []
+
+  mongodb:
+    ports: []

@@ -3,9 +3,7 @@ services:
     build:
       context: ./BaseApi
       dockerfile: Dockerfile
-    ports:
-      - "7000:8080"
-      - "7001:8081"
+    # Ports moved to environment-specific files
     environment:
       - ASPNETCORE_ENVIRONMENT=Production
       - ConnectionStrings__DefaultConnection=Server=sqlserver;Database=BaseApi;User Id=sa;Password=Password123!;TrustServerCertificate=True
@@ -25,8 +23,7 @@ services:
     environment:
       - ACCEPT_EULA=Y
       - MSSQL_SA_PASSWORD=Password123!
-    ports:
-      - "1433:1433"
+    # Ports moved to environment-specific files
     volumes:
       - sql_data:/var/opt/mssql
     healthcheck:
@@ -38,16 +35,14 @@ services:
 
   redis:
     image: redis:7-alpine
-    ports:
-      - "6379:6379"
+    # Ports moved to environment-specific files
     volumes:
       - redis_data:/data
     restart: always
 
   mongodb:
     image: mongo:7.0
-    ports:
-      - "27017:27017"
+    # Ports moved to environment-specific files
     volumes:
       - mongo_data:/data/db
     environment:

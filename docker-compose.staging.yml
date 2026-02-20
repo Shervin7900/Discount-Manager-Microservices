@@ -1,0 +1,15 @@
+services:
+  baseapi:
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Staging
+    ports:
+      - "8080:8080"
+
+  sqlserver:
+    ports: []
+
+  redis:
+    ports: []
+
+  mongodb:
+    ports: []

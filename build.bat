@@ -33,8 +33,12 @@ docker build -t base-api:%ENV% BaseApi/
 if %errorlevel% neq 0 exit /b %errorlevel%
 
 if "%ACTION%"=="up" (
-    echo [3/3] Starting stack with Docker Compose...
-    docker-compose up -d
+    echo [3/3] Starting stack with Docker Compose (%ENV%)...
+    set COMPOSE_FILES=-f docker-compose.yml
+    if exist docker-compose.%ENV%.yml (
+        set COMPOSE_FILES=!COMPOSE_FILES! -f docker-compose.%ENV%.yml
+    )
+    docker-compose !COMPOSE_FILES! up -d
 ) else (
     echo [3/3] Build complete. Use 'build.bat %ENV% up' to start services.
 )

@@ -1,0 +1,21 @@
+services:
+  baseapi:
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+    # Map more ports for debugging if needed
+    ports:
+      - "7000:8080"
+      - "7001:8081"
+      - "5000:5000"
+
+  sqlserver:
+    ports:
+      - "1433:1433"
+
+  redis:
+    ports:
+      - "6379:6379"
+
+  mongodb:
+    ports:
+      - "27017:27017"

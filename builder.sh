@@ -28,8 +28,12 @@ echo "[2/3] Building Docker Image..."
 docker build -t base-api:$ENV BaseApi/
 
 if [ "$ACTION" == "up" ]; then
-    echo "[3/3] Starting stack with Docker Compose..."
-    docker-compose up -d
+    echo "[3/3] Starting stack with Docker Compose ($ENV)..."
+    COMPOSE_FILES="-f docker-compose.yml"
+    if [ -f "docker-compose.$ENV.yml" ]; then
+        COMPOSE_FILES="$COMPOSE_FILES -f docker-compose.$ENV.yml"
+    fi
+    docker-compose $COMPOSE_FILES up -d
 else
     echo "[3/3] Build complete. Use './builder.sh $ENV up' to start services."
 fi
