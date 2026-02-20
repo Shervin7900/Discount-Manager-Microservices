@@ -14,8 +14,16 @@ public static class ServiceExtensions
 {
     public static void AddDatabaseContext(this IServiceCollection services, string connectionString)
     {
-        services.AddDbContext<ApplicationDbContext>(options =>
-            options.UseSqlServer(connectionString));
+        if (connectionString == "InMemory")
+        {
+            services.AddDbContext<ApplicationDbContext>(options =>
+                options.UseInMemoryDatabase("InMemoryDbForTesting"));
+        }
+        else
+        {
+            services.AddDbContext<ApplicationDbContext>(options =>
+                options.UseSqlServer(connectionString));
+        }
     }
 
     public static void AddMongoPersistence(this IServiceCollection services, string connectionString)
@@ -24,7 +32,7 @@ public static class ServiceExtensions
         services.AddSingleton<IMongoClient>(new MongoClient(settings));
     }
 
-    public static void AddIdentityAndIdentityServer(this IServiceCollection services)
+    public static void AddIdentityAndIdentityServer(this IServiceCollection services, bool useInMemoryStores = false)
     {
         services.AddIdentity<ApplicationUser, IdentityRole>()
             .AddEntityFrameworkStores<ApplicationDbContext>()
@@ -37,12 +45,22 @@ public static class ServiceExtensions
                 options.Events.RaiseFailureEvents = true;
                 options.Events.RaiseSuccessEvents = true;
                 options.EmitStaticAudienceClaim = true;
-            })
-            .AddConfigurationStore<ApplicationDbContext>()
-            .AddOperationalStore<ApplicationDbContext>()
-            .AddAspNetIdentity<ApplicationUser>();
+            });
 
-        builder.AddDeveloperSigningCredential();
+        if (useInMemoryStores)
+        {
+            builder.AddInMemoryClients(Config.Clients)
+                   .AddInMemoryApiScopes(Config.ApiScopes)
+                   .AddInMemoryIdentityResources(Config.IdentityResources);
+        }
+        else
+        {
+            builder.AddConfigurationStore<ApplicationDbContext>()
+                   .AddOperationalStore<ApplicationDbContext>();
+        }
+
+        builder.AddAspNetIdentity<ApplicationUser>()
+               .AddDeveloperSigningCredential();
 
         services.AddAuthentication(options =>
         {

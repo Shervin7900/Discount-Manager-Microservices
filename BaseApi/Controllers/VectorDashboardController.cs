@@ -4,6 +4,7 @@ namespace BaseApi.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
+[Microsoft.AspNetCore.Authorization.Authorize]
 public class VectorDashboardController : ControllerBase
 {
     private readonly IHttpClientFactory _httpClientFactory;
@@ -17,7 +18,16 @@ public class VectorDashboardController : ControllerBase
     public async Task<IActionResult> Get()
     {
         var client = _httpClientFactory.CreateClient();
-        var metrics = await client.GetStringAsync($"{Request.Scheme}://{Request.Host}/metrics");
+        
+        string metrics;
+        try 
+        {
+            metrics = await client.GetStringAsync($"{Request.Scheme}://{Request.Host}/metrics");
+        }
+        catch (Exception ex)
+        {
+            metrics = $"Error fetching metrics: {ex.Message}\n\nThis is expected in some test environments where the loopback metrics endpoint might not be fully active.";
+        }
 
         var html = $@"
 <!DOCTYPE html>

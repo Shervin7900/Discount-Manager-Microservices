@@ -13,7 +13,7 @@ var mongoConnectionString = builder.Configuration.GetConnectionString("Mongo") ?
 
 builder.Services.AddDatabaseContext(connectionString);
 builder.Services.AddMongoPersistence(mongoConnectionString);
-builder.Services.AddIdentityAndIdentityServer();
+builder.Services.AddIdentityAndIdentityServer(useInMemoryStores: connectionString == "InMemory");
 builder.Services.AddAdvancedCaching(redisConnectionString);
 builder.Services.AddSystematicHealthChecks(connectionString, redisConnectionString, mongoConnectionString);
 builder.Services.AddVectorMetrics();
@@ -95,3 +95,5 @@ using (var scope = app.Services.CreateScope())
 }
 
 app.Run();
+
+public partial class Program { }
