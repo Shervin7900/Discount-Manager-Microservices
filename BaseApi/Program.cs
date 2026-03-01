@@ -21,32 +21,39 @@ var app = builder.Build();
 app.UseBaseInfrastructure();
 
 // Optional Seeding Logic
-using (var scope = app.Services.CreateScope())
+try
 {
-    var services = scope.ServiceProvider;
-    var context = services.GetRequiredService<ApplicationDbContext>();
-    context.Database.EnsureCreated();
-
-    // Only seed if empty and requested (or always in this demo)
-    if (!context.Clients.Any())
+    using (var scope = app.Services.CreateScope())
     {
-        foreach (var client in Config.Clients)
+        var services = scope.ServiceProvider;
+        var context = services.GetRequiredService<ApplicationDbContext>();
+        context.Database.EnsureCreated();
+
+        // Only seed if empty and requested (or always in this demo)
+        if (!context.Clients.Any())
         {
-            context.Clients.Add(client.ToEntity());
+            foreach (var client in Config.Clients)
+            {
+                context.Clients.Add(client.ToEntity());
+            }
+            
+            foreach (var resource in Config.IdentityResources)
+            {
+                context.IdentityResources.Add(resource.ToEntity());
+            }
+            
+            foreach (var scopeItem in Config.ApiScopes)
+            {
+                context.ApiScopes.Add(scopeItem.ToEntity());
+            }
+            
+            context.SaveChanges();
         }
-        
-        foreach (var resource in Config.IdentityResources)
-        {
-            context.IdentityResources.Add(resource.ToEntity());
-        }
-        
-        foreach (var scopeItem in Config.ApiScopes)
-        {
-            context.ApiScopes.Add(scopeItem.ToEntity());
-        }
-        
-        context.SaveChanges();
     }
+}
+catch (Exception ex)
+{
+    Console.WriteLine($"[Warning] Database initialization failed: {ex.Message}. The app will proceed without database-dependent features.");
 }
 
 app.Run();
