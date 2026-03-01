@@ -15,7 +15,7 @@ class Program
         // SQL Server
         Console.Write("1. SQL Server (localhost:1433)... ");
         try {
-            string sqlConn = "Server=localhost;Database=master;User Id=sa;Password=Password123!;TrustServerCertificate=True;Connect Timeout=5";
+            string sqlConn = "Server=localhost;Database=master;Trusted_Connection=True;TrustServerCertificate=True;Connect Timeout=5";
             using var connection = new SqlConnection(sqlConn);
             await connection.OpenAsync();
             Console.WriteLine("CONNECTED");

@@ -14,9 +14,9 @@ public static class BaseApiExtensions
     public static IServiceCollection AddBaseInfrastructure(this IServiceCollection services, IConfiguration configuration)
     {
         var connectionString = configuration.GetConnectionString("DefaultConnection") 
-            ?? "Server=(localdb)\\mssqllocaldb;Database=BaseApi;Trusted_Connection=True;MultipleActiveResultSets=true";
+            ?? "Server=(localdb)\\mssqllocaldb;Database=BaseStore;Trusted_Connection=True;MultipleActiveResultSets=true";
         var redisConnectionString = configuration.GetConnectionString("Redis") ?? "localhost:6379";
-        var mongoConnectionString = configuration.GetConnectionString("Mongo") ?? "mongodb://localhost:27017/BaseApi";
+        var mongoConnectionString = configuration.GetConnectionString("Mongo") ?? "mongodb://localhost:27017/BaseStore";
 
         services.AddDatabaseContext(connectionString);
         services.AddMongoPersistence(mongoConnectionString);
