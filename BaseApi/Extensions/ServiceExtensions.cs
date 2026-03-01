@@ -132,6 +132,12 @@ public static class ServiceExtensions
 
     public static void AddSwaggerDocumentation(this IServiceCollection services)
     {
-        services.AddSwaggerGen();
+        services.AddSwaggerGen(options =>
+        {
+            // Use full type name (namespace + class) to avoid schema ID conflicts
+            // e.g. BasketApi.Features.Basket.Get.Request vs BasketApi.Features.Basket.Update.Request
+            options.CustomSchemaIds(type =>
+                type.FullName?.Replace("+", ".") ?? type.Name);
+        });
     }
 }
