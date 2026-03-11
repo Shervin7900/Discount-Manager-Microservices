@@ -30,6 +30,11 @@ public static class ServiceExtensions
     }
     public static void AddMongoPersistence(this IServiceCollection services, string connectionString)
     {
+        if (connectionString == "InMemory" || string.IsNullOrEmpty(connectionString))
+        {
+            // Skip or register a mock if needed. For now, we skip to avoid connection attempts.
+            return;
+        }
         var settings = MongoClientSettings.FromConnectionString(connectionString);
         services.AddSingleton<IMongoClient>(new MongoClient(settings));
         services.AddScoped<Domain.Interfaces.IMongoUnitOfWork>(sp => 
@@ -91,11 +96,15 @@ public static class ServiceExtensions
     public static void AddAdvancedCaching(this IServiceCollection services, string redisConnectionString)
     {
         services.AddMemoryCache();
-        services.AddStackExchangeRedisCache(options =>
+        
+        if (redisConnectionString != "InMemory" && !string.IsNullOrEmpty(redisConnectionString))
         {
-            options.Configuration = redisConnectionString;
-            options.InstanceName = "BaseApi_";
-        });
+            services.AddStackExchangeRedisCache(options =>
+            {
+                options.Configuration = redisConnectionString;
+                options.InstanceName = "BaseApi_";
+            });
+        }
 
         services.AddScoped<Domain.Interfaces.IRedisUnitOfWork, Infrastructure.Persistence.RedisUnitOfWork>();
 
@@ -106,10 +115,22 @@ public static class ServiceExtensions
 
     public static void AddSystematicHealthChecks(this IServiceCollection services, string sqlConnectionString, string redisConnectionString, string mongoConnectionString)
     {
-        services.AddHealthChecks()
-            .AddSqlServer(sqlConnectionString, name: "SQL Server")
-            .AddRedis(redisConnectionString, name: "Redis Cache")
-            .AddMongoDb(_ => new MongoClient(mongoConnectionString), name: "MongoDB");
+        var builder = services.AddHealthChecks();
+        
+        if (sqlConnectionString != "InMemory")
+        {
+            builder.AddSqlServer(sqlConnectionString, name: "SQL Server");
+        }
+        
+        if (redisConnectionString != "InMemory" && !string.IsNullOrEmpty(redisConnectionString))
+        {
+            builder.AddRedis(redisConnectionString, name: "Redis Cache");
+        }
+        
+        if (mongoConnectionString != "InMemory" && !string.IsNullOrEmpty(mongoConnectionString))
+        {
+            builder.AddMongoDb(_ => new MongoClient(mongoConnectionString), name: "MongoDB");
+        }
 
         services.AddHealthChecksUI(setup =>
         {
@@ -120,6 +141,12 @@ public static class ServiceExtensions
 
     public static void AddSwaggerDocumentation(this IServiceCollection services)
     {
-        services.AddSwaggerGen();
+        services.AddSwaggerGen(options =>
+        {
+            // Use full type name (namespace + class) to avoid schema ID conflicts
+            // e.g. BasketApi.Features.Basket.Get.Request vs BasketApi.Features.Basket.Update.Request
+            options.CustomSchemaIds(type =>
+                type.FullName?.Replace("+", ".") ?? type.Name);
+        });
     }
 }
