@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Threading.Tasks;
+using BaseApi.Domain.Common;
 using BaseApi.Domain.Interfaces;
 using Microsoft.EntityFrameworkCore;
 using BaseApi.Infrastructure.Persistence;
@@ -33,6 +34,36 @@ public class EFGenericRepository<T> : IGenericRepository<T> where T : class
     public async Task<IEnumerable<T>> FindAsync(Expression<Func<T, bool>> predicate)
     {
         return await _dbSet.Where(predicate).ToListAsync();
+    }
+
+    public async Task<T?> FirstOrDefaultAsync(Expression<Func<T, bool>> predicate)
+    {
+        return await _dbSet.FirstOrDefaultAsync(predicate);
+    }
+
+    public async Task<int> CountAsync(Expression<Func<T, bool>>? predicate = null)
+    {
+        return predicate == null 
+            ? await _dbSet.CountAsync()
+            : await _dbSet.CountAsync(predicate);
+    }
+
+    public async Task<bool> AnyAsync(Expression<Func<T, bool>>? predicate = null)
+    {
+        return predicate == null
+            ? await _dbSet.AnyAsync()
+            : await _dbSet.AnyAsync(predicate);
+    }
+
+    public async Task<PagedResult<T>> GetPagedAsync(int pageNumber, int pageSize, Expression<Func<T, bool>>? predicate = null)
+    {
+        var query = predicate == null ? _dbSet : _dbSet.Where(predicate);
+        var totalCount = await query.CountAsync();
+        var items = await query.Skip((pageNumber - 1) * pageSize)
+                               .Take(pageSize)
+                               .ToListAsync();
+
+        return PagedResult<T>.Success(items, totalCount, pageNumber, pageSize);
     }
 
     public async Task AddAsync(T entity)

@@ -7,6 +7,8 @@ using Microsoft.Extensions.Caching.Hybrid;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using MongoDB.Driver;
+using FluentValidation;
+using AutoMapper;
 
 namespace BaseApi.Extensions;
 
@@ -147,6 +149,51 @@ public static class ServiceExtensions
             // e.g. BasketApi.Features.Basket.Get.Request vs BasketApi.Features.Basket.Update.Request
             options.CustomSchemaIds(type =>
                 type.FullName?.Replace("+", ".") ?? type.Name);
+        });
+    }
+
+    public static void AddStandardCors(this IServiceCollection services)
+    {
+        services.AddCors(options =>
+        {
+            options.AddPolicy("DefaultCors", builder =>
+            {
+                builder.AllowAnyOrigin()
+                       .AllowAnyMethod()
+                       .AllowAnyHeader();
+            });
+        });
+    }
+
+    public static void AddApiVersioningConfig(this IServiceCollection services)
+    {
+        services.AddApiVersioning(options =>
+        {
+            options.DefaultApiVersion = new Asp.Versioning.ApiVersion(1, 0);
+            options.AssumeDefaultVersionWhenUnspecified = true;
+            options.ReportApiVersions = true;
+        }).AddApiExplorer(options =>
+        {
+            options.GroupNameFormat = "'v'VVV";
+            options.SubstituteApiVersionInUrl = true;
+        });
+    }
+
+    public static void AddAutoMapperConfig(this IServiceCollection services, params System.Reflection.Assembly[] assemblies)
+    {
+        services.AddAutoMapper(assemblies);
+    }
+
+    public static void AddFluentValidationConfig(this IServiceCollection services, params System.Reflection.Assembly[] assemblies)
+    {
+        services.AddValidatorsFromAssemblies(assemblies);
+    }
+
+    public static void AddStandardCompression(this IServiceCollection services)
+    {
+        services.AddResponseCompression(options =>
+        {
+            options.EnableForHttps = true;
         });
     }
 }

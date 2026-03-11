@@ -37,6 +37,23 @@ public class RedisUnitOfWork : IRedisUnitOfWork
         await _cache.SetStringAsync(key, data, options);
     }
 
+    public async Task<T?> GetOrSetAsync<T>(string key, Func<Task<T>> acquire, TimeSpan? expiration = null)
+    {
+        var value = await GetAsync<T>(key);
+        if (value != null)
+        {
+            return value;
+        }
+
+        value = await acquire();
+        if (value != null)
+        {
+            await SetAsync(key, value, expiration);
+        }
+
+        return value;
+    }
+
     public async Task RemoveAsync(string key)
     {
         await _cache.RemoveAsync(key);

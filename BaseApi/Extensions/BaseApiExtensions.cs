@@ -32,6 +32,16 @@ public static class BaseApiExtensions
         services.AddFastEndpoints();
         services.SwaggerDocument();
 
+        // New Base Infrastructure Needs
+        services.AddStandardCors();
+        services.AddApiVersioningConfig();
+        services.AddStandardCompression();
+        
+        // Registering standard assemblies (calling project's calling assembly)
+        var assembly = System.Reflection.Assembly.GetCallingAssembly();
+        services.AddAutoMapperConfig(assembly);
+        services.AddFluentValidationConfig(assembly);
+
         return services;
     }
 
@@ -47,6 +57,14 @@ public static class BaseApiExtensions
                 options.DocumentTitle = apiTitle;
             });
         }
+
+        app.UseCors("DefaultCors");
+        app.UseResponseCompression();
+        
+        // Base Middlewares
+        app.UseMiddleware<Infrastructure.Middlewares.ExceptionMiddleware>();
+        app.UseMiddleware<Infrastructure.Middlewares.PerformanceMiddleware>();
+        app.UseMiddleware<Infrastructure.Middlewares.LoggingMiddleware>();
 
         app.UseHttpsRedirection();
         app.UseIdentityServer();

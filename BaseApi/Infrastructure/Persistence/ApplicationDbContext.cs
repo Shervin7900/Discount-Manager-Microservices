@@ -45,6 +45,24 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>, IConfigu
         builder.ConfigurePersistedGrantContext(_operationalStoreOptions.Value);
     }
 
+    public override async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
+    {
+        foreach (var entry in ChangeTracker.Entries<Domain.Common.IAuditableEntity>())
+        {
+            switch (entry.State)
+            {
+                case EntityState.Added:
+                    entry.Entity.CreatedAt = DateTime.UtcNow;
+                    break;
+                case EntityState.Modified:
+                    entry.Entity.LastModifiedAt = DateTime.UtcNow;
+                    break;
+            }
+        }
+
+        return await base.SaveChangesAsync(cancellationToken);
+    }
+
     Task<int> IConfigurationDbContext.SaveChangesAsync() => base.SaveChangesAsync();
     Task<int> IPersistedGrantDbContext.SaveChangesAsync() => base.SaveChangesAsync();
 }

@@ -1,5 +1,6 @@
 # Build Stage
 FROM mcr.microsoft.com/dotnet/sdk:10.0-alpine AS build
+RUN apk update && apk upgrade
 WORKDIR /src
 
 # Copy only the project file and restore to cache dependencies
@@ -16,6 +17,7 @@ RUN dotnet publish "BaseApi.csproj" -c Release -o /app/publish /p:UseAppHost=fal
 
 # Final Stage
 FROM mcr.microsoft.com/dotnet/aspnet:10.0-alpine AS final
+RUN apk update && apk upgrade
 WORKDIR /app
 EXPOSE 8080
 EXPOSE 8081
