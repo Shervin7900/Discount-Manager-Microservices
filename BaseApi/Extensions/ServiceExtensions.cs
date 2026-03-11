@@ -24,12 +24,19 @@ public static class ServiceExtensions
             services.AddDbContext<ApplicationDbContext>(options =>
                 options.UseSqlServer(connectionString));
         }
-    }
 
+        services.AddScoped<Domain.Interfaces.ISqlUnitOfWork, Infrastructure.Persistence.SqlUnitOfWork>();
+        services.AddScoped(typeof(Domain.Interfaces.IGenericRepository<>), typeof(Infrastructure.Persistence.EFGenericRepository<>));
+    }
     public static void AddMongoPersistence(this IServiceCollection services, string connectionString)
     {
         var settings = MongoClientSettings.FromConnectionString(connectionString);
         services.AddSingleton<IMongoClient>(new MongoClient(settings));
+        services.AddScoped<Domain.Interfaces.IMongoUnitOfWork>(sp => 
+        {
+             var client = sp.GetRequiredService<IMongoClient>();
+             return new MongoUnitOfWork(client, "BaseDb"); // Or from config
+        });
     }
 
     public static void AddIdentityAndIdentityServer(this IServiceCollection services, bool useInMemoryStores = false)
@@ -89,6 +96,8 @@ public static class ServiceExtensions
             options.Configuration = redisConnectionString;
             options.InstanceName = "BaseApi_";
         });
+
+        services.AddScoped<Domain.Interfaces.IRedisUnitOfWork, Infrastructure.Persistence.RedisUnitOfWork>();
 
 #pragma warning disable EXTEXP0018
         services.AddHybridCache(); 
