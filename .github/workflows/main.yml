@@ -12,6 +12,7 @@ env:
   DOTNET_VERSION: "10.0.x"
   PROJECT_PATH: "BaseApi/BaseApi.csproj"
   DOCKER_IMAGE: "base-api"
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
 
 jobs:
   # CI Job: Runs on every PR and Push to build and test
